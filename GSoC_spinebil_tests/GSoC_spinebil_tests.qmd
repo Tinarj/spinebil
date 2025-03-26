@@ -1,13 +1,23 @@
 ---
-title: "GSoC_spinebil_tests"
+title: "GSoC 2025: Tests for the Spinebil R package"
 author: "Tina"
 date: "today"
-format: html
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-location: left
+
 ---
 
 ## 📦 Overview
 
 This document describes the process of running the tests for the `spinebil` package and how I identified and resolved various issues to make the package pass `devtools::check()` with **no errors or warnings**. This is part of my work for **Google Summer of Code 2025**. 
+
+In addition to the `devtools::check()` debugging, I also completed the other two required tests:
+
+- I added a **GitHub Actions workflow** to automate CRAN checks.
+- I conducted a **simulation study** to explore the minimum and maximum of the `stringy` scagnostic index.
 
 
 ## 1️⃣ First test
@@ -15,28 +25,18 @@ This document describes the process of running the tests for the `spinebil` pack
 - Easy: Fork the package and run the package checks using devtools. Make the fixes needed for it to pass CRAN checks.
 
 
-## ✅ Goals
+### 🔍 First Check: `devtools::check()`
 
-- Run `devtools::check()` to verify the package status
-- Fix all errors, warnings, and notes
-- Replace deprecated packages or functions
-- Ensure the examples run without error
-- Prepare for CRAN-readiness and future testing
-
----
-
-## 🔍 First Check: `devtools::check()`
-
-To begin, I created a Quarto (`.qmd`) file inside a new folder named `GSoC_spinebil_tests` within the `spinebil` package repository that I have froked. Since `.qmd` files are not part of a typical R package structure, I added the file to `.Rbuildignore` to ensure that `devtools::check()` would not throw an error during the package check process. This allows me to include documentation and notes within the package directory without interfering with the R package build or checks.
+To begin, I created a Quarto (`.qmd`) file inside a new folder named `GSoC_spinebil_tests` within the `spinebil` package repository that I have froked. Since `.qmd` files are not part of a typical R package structure, I added the file to `.Rbuildignore` to ensure that `devtools::check()` would not throw an error during the package check process.
 
 Next, I installed and loaded the `devtools` package using:
 
-```{r}
+```{r eval=FALSE}
 # install.packages("devtools")
 library(devtools)
 ```
 
-Then, I ran `devtools::check()` to evaluate the current state of the `spinebil` package and identify any **errors**, **warnings**, or **notes** that need to be fixed.
+Then, I ran `devtools::check()` to evaluate the current state of the `spinebil` package and identify any errors, warnings, or notes that need to be fixed.
 
 ```{r eval= FALSE}
 devtools::check()
@@ -81,11 +81,11 @@ To resolve this, I replaced all usage of `binostics` with the [`cassowaryr`](htt
 
 ### 🔧 Updating Package Dependencies
 
-In order to use the `cassowaryr` package, which provides scagnostic computations and because it will be used throughout future tests and development, I added `cassowaryr` to the `Imports` field in the `DESCRIPTION` file of the `spinebil` package.
+In order to use the `cassowaryr` package, which provides scagnostic computations, I added `cassowaryr` to the `Imports` field in the `DESCRIPTION` file of the `spinebil` package.
 
 At the same time, I removed the `binostics` package from the `Suggests` field, as it is deprecated and no longer available on CRAN. Keeping it in `DESCRIPTION` caused errors during `devtools::check()`, so removing it was necessary for compatibility.
 
-**Changes made to `DESCRIPTION`:**
+#### **Changes made to `DESCRIPTION`:**
 
 Before:
 
@@ -121,9 +121,9 @@ After:
     testthat,
     purrr
     
-### 🔁 Re-checking the Package
+###  Re-checking the Package
 
-After updating the `DESCRIPTION` file to include `cassowaryr` under the `Imports` field and removing `binostics` from `Suggests`, I re-ran the full package check using:
+After updating the `DESCRIPTION` file to include `cassowaryr` and removing `binostics`, I re-ran the full package check using:
 
 ```{r, eval=FALSE}
 devtools::check()
@@ -218,7 +218,7 @@ Duration: 13m 1.7s
 ```
 
   
-###  Error in `squintAngleEstimate()`
+### ❗  Error in `squintAngleEstimate()`
 
 While running `devtools::check()`, I encountered the following runtime error in the examples of the `squintAngleEstimate()` function:
 
@@ -297,13 +297,13 @@ Duration: 13m 20s
 1 error ✖ | 1 warning ✖ | 0 notes ✔
 ```
 
-### Two Additional Errors Detected During `devtools::check()`
+### ❗ Two Additional Errors Detected During `devtools::check()`
 
 While re-running `devtools::check()` on the updated `spinebil` package, I encountered two more issues:
 
 #### 1. Deprecated `purrr::rerun()` function
 
-Warning: rerun() was deprecated in purrr 1.0.0. ℹ Please use map() instead. I replaced all with `purrr::map()`
+Warning: rerun() was deprecated in purrr 1.0.0. ℹ Please use map() instead. I replaced it with `purrr::map()`
 
 
 #### 2. Runtime error in timeSequence() due to unlist() on tictoc::tic.log()
@@ -396,5 +396,194 @@ This indicates that the package has passed all checks successfully and is ready 
 ## 2️⃣ Second test
 
 - Medium: Add a GitHub Actions workflow to automate the CRAN checks when code is pushed to the GitHub.
+
+To automate CRAN-style checks for the `spinebil` package, I created a GitHub Actions workflow named `R-CMD-check`. This workflow is located at `.github/workflows/R-CMD-check.yaml` and runs automatically on every push or pull request to the repository.
+
+After pushing the workflow file to GitHub, I verified that the action was triggered successfully via the “Actions” tab in my repository.
+
+### ✅ GitHub Actions Workflow Check Result
+
+The GitHub Actions workflow ran successfully, showing that the `spinebil` package passes `R CMD check` on all major platforms.
+
+![R CMD check success](images/r-cmd-check-success.png)
+
+## 3️⃣ Third Test
+
+- Hard: Write a simulation to check the minimum and maximum values that we might observe for any 2D pattern for the stringy index available in tourr package. Report the data generated for testing, and the minimum and maximum values that would be expected.
+
+
+
+
+I am going to install and load the required libraries, and then I will test the `stringy` function for two datasets:
+
+- A 2D dataset generated using `spiralData()` which is available in the `spinebil` package.
+- A random noise dataset generated using `rnorm()`.
+
+Then, I will run a simulation to find the maximum and minimum values of the `stringy` index for these two types of patterns.
+
+
+### 🔍 Step 1: Install and load the `tourr` package
+
+The `stringy` function is available in the `tourr` package. First, I install and load it:
+
+```{r}
+# install.packages("tourr")
+library(tourr)
+```
+
+### 🔍 Step 2: Call the stringy function and understand its usage
+
+```{r}
+tourr::stringy()
+```
+When I inspect the `stringy()` function using `tourr::stringy`, we see that it is actually from a different package. The actual computation of the stringy index is performed by the function `sc_stringy()` from the `cassowaryr` package.
+
+The `stringy` index is one of the scagnostics (scatterplot diagnostics) features. It measures how much a 2D scatterplot resembles a stringy or elongated structure. The value of `stringy` is always between 0 and 1:
+
+- A higher value (close to 1) indicates that the data has a strong stringy or elongated pattern.
+- A lower value (close to 0) suggests the data is more scattered, unstructured, or noise-like.
+
+To explore this behavior, I will apply the `stringy` index to two datasets:
+
+1. **Spiral dataset**: Using `spiralData()` from the `spinebil` package, which generates a spiral pattern.  I expect this to have a high stringy value because of its elongated structure.
+2. **Noise dataset**: Generated using `rnorm()`, which creates spread-out, structureless data. I expect the `stringy` index to be low for this case.
+
+
+###  Creating the First Dataset: Spiral Pattern
+
+First, I created a dataset with a clear elongated structure using the `spiralData()` function from the `spinebil` package:
+
+```{r warning=FALSE}
+library(ggplot2)
+first_data <- spinebil::spiralData(2, 1000)
+first_data <- as.data.frame(first_data)
+
+ggplot(first_data, aes(x = V1, y = V2 )) +
+  geom_point() +
+  labs(title = "spiral structure") +
+  xlim(c(-2, 2)) +
+  ylim(c(-2, 2)) +
+  xlab("") +
+  ylab("") +
+  theme(
+    aspect.ratio = 1,
+    axis.text = element_blank(),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = NA, colour = "black")
+  )
+```
+
+This function generates a 2D spiral-shaped dataset, which is a good candidate for exhibiting a high `stringy` value due to its long, continuous structure.
+
+To calculate the stringiness of this dataset, I have used the following approaches:
+
+
+```{r warning=FALSE}
+# using `tourr` package
+tourr::stringy()(first_data)
+
+# using the `cassowaryr` package directly
+cassowaryr::sc_stringy(first_data[,1], first_data[,2])
+
+```
+
+
+As observed from the result, the spiral dataset gave a `stringy` value of approximately 0.99, which indicates a highly elongated and stringy pattern. This aligns with my expectation, as spiral-shaped data exhibits strong continuity.
+
+Now, to better understand the behavior of the `stringy` index, I will run a simulation.
+
+### Simulation
+
+To explore the min and max of values, I simulated the process 500 times using `spiralData()` and stored all resulting stringy values.
+
+```{r warning=FALSE}
+library(dplyr)
+
+set.seed(1225)
+n_sim <- 500
+
+results <- data.frame(sim = numeric(0), stringy_val = numeric(0))
+
+for (i in 1:n_sim) {
+  data <- spinebil::spiralData(2, 1000)
+  data <- data[!duplicated(data), ]  
+  val <- tryCatch({
+    suppressWarnings(cassowaryr::sc_stringy(data[,1], data[,2]))
+  }, error = function(e) {
+    NA
+  })
+
+  new_row <- data.frame(sim = i, stringy_val = val)
+  results <- rbind(results, new_row)
+}
+
+results %>%
+  summarise(
+    min_stringy = min(stringy_val, na.rm = TRUE),
+    max_stringy = max(stringy_val, na.rm = TRUE)
+  )
+```
+
+This output will give the minimum and maximum `stringy` values observed across all simulated spiral patterns. 
+
+###  Creating the Second Dataset: Random Noise Data
+
+To compare the behavior of the `stringy` index on unstructured data, I created a dataset consisting of two columns of values randomly generated from a standard normal distribution using `rnorm()`. Since this data is randomly scattered and does not follow any clear pattern or direction, I expect the `stringy` index to return low values, close to 0.
+
+```{r warning=FALSE}
+noise1 <- rnorm(300, 0, 1) 
+noise2 <- rnorm(300, 0, 1)
+second_data <- data.frame(noise1, noise2)
+ggplot(second_data, aes(x = noise1, y = noise2 )) +
+  geom_point() +
+  labs(title = "random noise") +
+  xlab("") +
+  ylab("") +
+  xlim(c(-2, 2)) +
+  ylim(c(-2, 2)) +
+  theme(
+    aspect.ratio = 1,
+    axis.text = element_blank(),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = NA, colour = "black")
+  )
+ 
+cassowaryr::sc_stringy(noise1,noise2)
+```
+
+
+### Simulation
+
+Now in the simulations, I will repeat this process 500 times to explore the minimum and maximum `stringy` values for random noise.
+
+
+```{r}
+library(dplyr)
+
+set.seed(4567)
+n_sim <- 500
+
+results_noise <- data.frame(sim = numeric(0), stringy_val = numeric(0))
+
+for (i in 1:n_sim) {
+  noise1 <- rnorm(300, 0, 1)
+  noise2 <- rnorm(300, 0, 1)
+  data <- cbind(noise1, noise2)
+  val <- cassowaryr::sc_stringy(data[, 1], data[, 2])
+  
+  results_noise <- rbind(results_noise, data.frame(sim = i, stringy_val = val))
+}
+
+
+results_noise %>%
+  summarise(
+    min_stringy = min(stringy_val, na.rm = TRUE),
+    max_stringy = max(stringy_val, na.rm = TRUE)
+  )
+
+```
+
+
+
 
 
