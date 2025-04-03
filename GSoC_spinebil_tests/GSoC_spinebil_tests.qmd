@@ -3,7 +3,7 @@ title: "GSoC 2025: Tests for the Spinebil R package"
 author: "Tina"
 date: "today"
 format:
-  html:
+  pdf:
     toc: true
     toc-depth: 3
     toc-location: left
