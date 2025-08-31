@@ -10,13 +10,13 @@
 #' @param pmax Maximum number of projections to evaluate (cut t if longer than pmax)
 #' @return numeric vector containing all distances
 #' @export
-#' @examples \donttest{
-#' d <- spiralData(4, 1000)
+#' @examples 
+#' d <- spiral_data(500, 4)
 #' t <- purrr::map(1:10, ~ tourr::basis_random(4))
-#' idx <- indexF <- function(xy){cassowaryr::calc_scags(xy[,1], xy[,2], scag ="skinny")[[1]]}
-#' timeSequence(d, t, idx, 10)
-#' }
-timeSequence <- function(d, t, idx, pmax){
+#' idx <- scag_index("stringy")
+#' time_sequence(d, t, idx, 10)
+
+time_sequence <- function(d, t, idx, pmax){
   i <- 1
   dfTimer <- data.frame(t= numeric(), i=numeric())
   for(pMatrix in t){

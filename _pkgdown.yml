@@ -1,44 +1,9 @@
-reference:
-- title: Package
-  desc: ~
+url: ~
+template:
+  bootstrap: 5
+articles:
+- title: Articles
+  navbar: ~
   contents:
-  - '`spinebil`'
-- title: Tracing
-  desc: ~
-  contents:
-  - '`getTrace`'
-  - '`plotTrace`'
-- title: Timing
-  desc: ~
-  contents:
-  - '`timeSequence`'
-- title: Rotation
-  desc: ~
-  contents:
-  - '`profileRotation`'
-  - '`plotRotation`'
-- title: Smoothing
-  desc: ~
-  contents:
-  - '`compareSmoothing`'
-  - '`jitterAngle`'
-  - '`jitterPoints`'
-  - '`getIndexMean`'
-- title: Distance estimation
-  desc: ~
-  contents:
-  - '`squintAngleEstimate`'
-  - '`distanceDist`'
-  - '`distanceToSp`'
-- title: Sampling functions
-  desc: ~
-  contents:
-  - '`pipeData`'
-  - '`sinData`'
-  - '`spiralData`'
-- title: Helper functions
-  desc: ~
-  contents:
-  - '`scagIndex`'
-  - '`basisMatrix`'
-  - '`basisVector`'
+  - ppi_diagnostics
+  - more_descriptives

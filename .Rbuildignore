@@ -4,8 +4,10 @@
 ^docs$
 ^_pkgdown\.yml$
 ^cran-comments\.md$
+^\.github$
 ^CRAN-RELEASE$
+^CRAN-SUBMISSION$
 ^plots$
 examples.R
-^GSoC_spinebil_tests$
-^GSoC_spinebil_tests\.qmd$
+.spinebil.Rcheck/
+^pkgdown$
